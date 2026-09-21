@@ -28,3 +28,17 @@ from app.modules.catalog.models.service import Service
 from app.modules.catalog.models.service_skill_requirement import (
     ServiceSkillRequirement,
 )
+
+
+# Customer
+from app.modules.customer.models.customer import Customer
+from app.modules.customer.models.contact_point import ContactPoint
+from app.modules.customer.models.customer_contact_point import (
+    CustomerContactPoint,
+)
+
+from app.modules.customer.models.customer_relationship_type import (
+    CustomerRelationshipType,
+)
+
+from app.modules.customer.models.customer_relationship import CustomerRelationship
