@@ -18,3 +18,13 @@ from app.modules.employee.models.employee_designation import EmployeeDesignation
 from app.modules.employee.models.employee_branch_assignment import (
     EmployeeBranchAssignment,
 )
+
+# Catalog
+from app.modules.catalog.models.skill import Skill
+from app.modules.employee.models.employee_skill import EmployeeSkill
+from app.modules.catalog.models.service_category import ServiceCategory
+from app.modules.catalog.models.service import Service
+
+from app.modules.catalog.models.service_skill_requirement import (
+    ServiceSkillRequirement,
+)
