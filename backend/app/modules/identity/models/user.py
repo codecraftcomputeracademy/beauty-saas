@@ -1,17 +1,15 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint, func
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
-from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import (
     DateTime,
     ForeignKey,
-    Index,
     String,
     UniqueConstraint,
     func,
 )
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
 
@@ -25,12 +23,11 @@ class User(Base):
             "username",
             name="uq_users_organization_username",
         ),
-        
-    UniqueConstraint(
-        "id",
-        "organization_id",
-        name="uq_users_id_organization",
-    ),
+        UniqueConstraint(
+            "id",
+            "organization_id",
+            name="uq_users_id_organization",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(
@@ -114,4 +111,3 @@ class User(Base):
         onupdate=func.now(),
         nullable=False,
     )
-
