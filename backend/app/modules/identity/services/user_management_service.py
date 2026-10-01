@@ -282,3 +282,59 @@ class UserManagementService:
         await self.session.flush()
 
         return user
+
+    async def mark_email_verified(
+        self,
+        organization_id: UUID,
+        user_id: UUID,
+    ) -> User | None:
+        user = await self.get_user(
+            organization_id=organization_id,
+            user_id=user_id,
+        )
+
+        if user is None:
+            return None
+
+        if user.email is None:
+            raise ValueError(
+                "Cannot verify email because user has no email address"
+            )
+
+        if user.email_verified_at is None:
+            from datetime import datetime, timezone
+
+            user.email_verified_at = datetime.now(timezone.utc)
+
+            await self.session.flush()
+
+        return user
+
+    async def mark_phone_verified(
+        self,
+        organization_id: UUID,
+        user_id: UUID,
+    ) -> User | None:
+        user = await self.get_user(
+            organization_id=organization_id,
+            user_id=user_id,
+        )
+
+        if user is None:
+            return None
+
+        if user.phone is None:
+            raise ValueError(
+                "Cannot verify phone because user has no phone number"
+            )
+
+        if user.phone_verified_at is None:
+            from datetime import datetime, timezone
+
+            user.phone_verified_at = datetime.now(timezone.utc)
+
+            await self.session.flush()
+
+        return user
+
+    

@@ -641,6 +641,139 @@ async def test_change_password_wrong_organization(
         print(
             "ERROR: Cross-organization password change was allowed"
         )
+async def test_mark_email_verified(
+    service: UserManagementService,
+):
+    user = await service.create_user(
+        organization_id=ORG_ID,
+        username="test.email.verification",
+        password="TestPassword@123",
+        email="verify@example.com",
+    )
+
+    if user.email_verified_at is not None:
+        print("\nEmail initially verified: FAIL")
+        return
+
+    verified_user = await service.mark_email_verified(
+        organization_id=ORG_ID,
+        user_id=user.id,
+    )
+
+    if (
+        verified_user is not None
+        and verified_user.email_verified_at is not None
+    ):
+        print("Email verification: PASS")
+    else:
+        print("Email verification: FAIL")
+        return
+
+    original_timestamp = verified_user.email_verified_at
+
+    verified_again = await service.mark_email_verified(
+        organization_id=ORG_ID,
+        user_id=user.id,
+    )
+
+    if (
+        verified_again is not None
+        and verified_again.email_verified_at == original_timestamp
+    ):
+        print("Email verification idempotency: PASS")
+    else:
+        print("Email verification idempotency: FAIL")
+async def test_mark_phone_verified(
+    service: UserManagementService,
+):
+    user = await service.create_user(
+        organization_id=ORG_ID,
+        username="test.phone.verification",
+        password="TestPassword@123",
+        phone="9999999999",
+    )
+
+    verified_user = await service.mark_phone_verified(
+        organization_id=ORG_ID,
+        user_id=user.id,
+    )
+
+    if (
+        verified_user is not None
+        and verified_user.phone_verified_at is not None
+    ):
+        print("\nPhone verification: PASS")
+    else:
+        print("\nPhone verification: FAIL")
+        return
+
+    original_timestamp = verified_user.phone_verified_at
+
+    verified_again = await service.mark_phone_verified(
+        organization_id=ORG_ID,
+        user_id=user.id,
+    )
+
+    if (
+        verified_again is not None
+        and verified_again.phone_verified_at == original_timestamp
+    ):
+        print("Phone verification idempotency: PASS")
+    else:
+        print("Phone verification idempotency: FAIL")
+
+async def test_verification_without_contact(
+    service: UserManagementService,
+):
+    user = await service.create_user(
+        organization_id=ORG_ID,
+        username="test.no.contact.verification",
+        password="TestPassword@123",
+    )
+
+    try:
+        await service.mark_email_verified(
+            organization_id=ORG_ID,
+            user_id=user.id,
+        )
+
+        print("\nEmail verification without email: FAIL")
+
+    except ValueError as exc:
+        print("\nEmail verification without email: PASS")
+        print(f"Reason: {exc}")
+
+    try:
+        await service.mark_phone_verified(
+            organization_id=ORG_ID,
+            user_id=user.id,
+        )
+
+        print("Phone verification without phone: FAIL")
+
+    except ValueError as exc:
+        print("Phone verification without phone: PASS")
+        print(f"Reason: {exc}")
+
+async def test_verification_wrong_organization(
+    service: UserManagementService,
+):
+    user = await service.create_user(
+        organization_id=ORG_ID,
+        username="test.verification.isolation",
+        password="TestPassword@123",
+        email="isolation@example.com",
+    )
+
+    result = await service.mark_email_verified(
+        organization_id=INVALID_ORG_ID,
+        user_id=user.id,
+    )
+
+    if result is None:
+        print("\nVerification wrong organization: PASS")
+    else:
+        print("\nVerification wrong organization: FAIL")
 
 async def main():
     async with AsyncSessionLocal() as session:
@@ -708,6 +841,19 @@ async def main():
         await session.rollback()
 
         await test_change_password_wrong_organization(service)
+        await session.rollback()
+
+        await test_mark_email_verified(service)
+
+        await session.rollback()
+
+        await test_mark_phone_verified(service)
+        await session.rollback()
+
+        await test_verification_without_contact(service)
+        await session.rollback()
+
+        await test_verification_wrong_organization(service)
         await session.rollback()
 
         print("\n" + "=" * 60)
