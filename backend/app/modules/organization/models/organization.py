@@ -81,6 +81,12 @@ class Organization(Base):
         index=True,
     )
 
+    hostname: Mapped[str] = mapped_column(
+        String(255),
+        unique=True,
+        nullable=False,
+    )
+        
     email: Mapped[str | None] = mapped_column(
         String(320),
         nullable=True,
