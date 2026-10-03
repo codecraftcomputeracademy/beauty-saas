@@ -15,6 +15,8 @@ from alembic import context
 # from backend.app.models.__init__Copy1 import Employee, EmployeeDesignation
 
 
+
+from app.core.config import settings
 from app.models.base import Base
 import app.model_registry  # noqa: F401
 
@@ -94,7 +96,7 @@ def run_migrations_online() -> None:
 
     from sqlalchemy.ext.asyncio import create_async_engine
 
-    from app.config import settings
+    from app.core.config import settings
 
     database_url = (
         f"postgresql+asyncpg://"

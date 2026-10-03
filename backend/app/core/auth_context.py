@@ -1,0 +1,10 @@
+from dataclasses import dataclass
+from uuid import UUID
+
+
+@dataclass(frozen=True)
+class CurrentUserContext:
+    user_id: UUID
+    organization_id: UUID
+
+    
