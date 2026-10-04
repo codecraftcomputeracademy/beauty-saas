@@ -1,14 +1,3 @@
-from uuid import UUID
-
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from fastapi import Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.database import AsyncSessionLocal
-from app.modules.authorization.services.authorization_service import (
-    AuthorizationService,
-)
-
 from datetime import date
 from uuid import UUID
 
@@ -20,11 +9,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth_context import CurrentUserContext
 from app.core.security import decode_access_token
 from app.database import AsyncSessionLocal
+from app.modules.authorization.services.authorization_service import (
+    AuthorizationService,
+)
 from app.modules.identity.repositories.user_repository import UserRepository
 from app.modules.organization.services.organization_service import (
     OrganizationService,
 )
 
+
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
 async def get_db_session():
@@ -32,36 +26,6 @@ async def get_db_session():
         yield session
 
 
-def require_permission(
-    permission_code: str,
-    branch_id: UUID | None = None,
-):
-    async def dependency(
-        current_user: CurrentUserContext = Depends(
-            get_current_user_context
-        ),
-        session: AsyncSession = Depends(get_db_session),
-    ):
-        authorization_service = AuthorizationService(session)
-
-        allowed = await authorization_service.has_permission(
-            organization_id=current_user.organization_id,
-            user_id=current_user.user_id,
-            permission_code=permission_code,
-            branch_id=branch_id,
-        )
-
-        if not allowed:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Permission denied",
-            )
-
-        return True
-
-    return dependency
-
-bearer_scheme = HTTPBearer(auto_error=False)
 async def get_current_user_context(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(
@@ -133,3 +97,33 @@ async def get_current_user_context(
         user_id=user.id,
         organization_id=organization.id,
     )
+
+
+def require_permission(
+    permission_code: str,
+    branch_id: UUID | None = None,
+):
+    async def dependency(
+        current_user: CurrentUserContext = Depends(
+            get_current_user_context
+        ),
+        session: AsyncSession = Depends(get_db_session),
+    ):
+        authorization_service = AuthorizationService(session)
+
+        allowed = await authorization_service.has_permission(
+            organization_id=current_user.organization_id,
+            user_id=current_user.user_id,
+            permission_code=permission_code,
+            branch_id=branch_id,
+        )
+
+        if not allowed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Permission denied",
+            )
+
+        return True
+
+    return dependency
