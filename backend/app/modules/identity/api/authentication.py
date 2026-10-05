@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import AsyncSessionLocal
+from app.core.dependencies import get_db_session
+# from app.database import AsyncSessionLocal
 from app.modules.identity.schemas.authentication import AuthenticationResult
 from app.modules.identity.schemas.login import LoginRequest
 from app.modules.identity.services.authentication_service import (
@@ -16,9 +17,9 @@ router = APIRouter(
 )
 
 
-async def get_db_session():
-    async with AsyncSessionLocal() as session:
-        yield session
+# async def get_db_session():
+#     async with AsyncSessionLocal() as session:
+#         yield session
 
 
 @router.post(
