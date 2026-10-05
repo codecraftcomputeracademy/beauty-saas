@@ -101,6 +101,68 @@ async def test_duplicate_username(
         print("Duplicate username count check: FAIL")
         print(f"Matching users found: {len(users)}")
 
+async def test_duplicate_username_case_insensitive(
+    service: UserManagementService,
+):
+    first_user = await service.create_user(
+        organization_id=ORG_ID,
+        username="Test.Case.User",
+        password="TestPassword@123",
+    )
+
+    try:
+        await service.create_user(
+            organization_id=ORG_ID,
+            username="test.case.user",
+            password="TestPassword@123",
+        )
+
+        print("\nCase-insensitive duplicate username: FAIL")
+        print("ERROR: Case-insensitive duplicate username was allowed")
+
+    except ValueError as exc:
+        print("\nCase-insensitive duplicate username: PASS")
+        print(f"Reason: {exc}")
+
+    if first_user.username == "Test.Case.User":
+        print("Original username casing preserved: PASS")
+    else:
+        print("Original username casing preserved: FAIL")
+
+async def test_update_user_duplicate_username_case_insensitive(
+    service: UserManagementService,
+):
+    first_user = await service.create_user(
+        organization_id=ORG_ID,
+        username="Test.Update.First",
+        password="TestPassword@123",
+    )
+
+    await service.create_user(
+        organization_id=ORG_ID,
+        username="Test.Update.Second",
+        password="TestPassword@123",
+    )
+
+    try:
+        await service.update_user(
+            organization_id=ORG_ID,
+            user_id=first_user.id,
+            username="test.update.second",
+        )
+
+        print(
+            "\nCase-insensitive update duplicate username: FAIL"
+        )
+        print(
+            "ERROR: Case-insensitive duplicate username update was allowed"
+        )
+
+    except ValueError as exc:
+        print(
+            "\nCase-insensitive update duplicate username: PASS"
+        )
+        print(f"Reason: {exc}")
 
 async def test_invalid_organization(
     service: UserManagementService,
@@ -789,6 +851,10 @@ async def main():
         await test_duplicate_username(service)
         await session.rollback()
 
+        await test_duplicate_username_case_insensitive(service)
+        await session.rollback()
+
+
         await test_invalid_organization(service)
         await session.rollback()
 
@@ -805,6 +871,9 @@ async def main():
         await session.rollback()
 
         await test_update_user_duplicate_username(service)
+        await session.rollback()
+
+        await test_update_user_duplicate_username_case_insensitive(service)
         await session.rollback()
 
         await test_set_user_status(service)
@@ -855,6 +924,7 @@ async def main():
 
         await test_verification_wrong_organization(service)
         await session.rollback()
+
 
         print("\n" + "=" * 60)
         print("ALL CREATE USER TESTS COMPLETED")

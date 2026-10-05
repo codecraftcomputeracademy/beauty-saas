@@ -1,8 +1,8 @@
 from uuid import UUID
-from sqlalchemy import select
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.modules.identity.models.user import User
-
+from sqlalchemy import func, select
 from app.core.security import hash_password, verify_password
 
 class UserManagementService:
@@ -47,7 +47,7 @@ class UserManagementService:
         existing_user_result = await self.session.execute(
             select(User.id).where(
                 User.organization_id == organization_id,
-                User.username == username,
+                func.lower(User.username) == username.lower(),
             )
         )
 
@@ -115,7 +115,7 @@ class UserManagementService:
             existing_user_result = await self.session.execute(
                 select(User.id).where(
                     User.organization_id == organization_id,
-                    User.username == username,
+                    func.lower(User.username) == username.lower(),
                     User.id != user_id,
                 )
             )
